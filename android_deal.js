@@ -19,7 +19,7 @@ module.exports = function (context) {
         return ;
     }
  
-    var targetDir  = path.join(projectRoot, "platforms", "android", "src", "com", "tongdatech", "callshow");
+    var targetDir  = path.join(projectRoot, "platforms", "android", "app","src","main","java","com", "tongdatech", "callshow");
 	var targetFiles = ["PhoneReceiver.java"];
 	
     if (['after_plugin_add', 'after_plugin_install', 'after_platform_add'].indexOf(context.hook) === -1) {
@@ -38,7 +38,7 @@ module.exports = function (context) {
 				if (err) {
 					throw err;
 				}
-				data = data.replace(/^import __ANDROID_PACKAGE__.R;/m, 'import ' + packageName + '.R;');
+				data = data.replace(/^import .*\.R;/m, 'import ' + packageName + '.R;');
 				fs.writeFileSync(targetFile, data);
 			});
 		});

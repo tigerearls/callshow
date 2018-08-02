@@ -25,16 +25,16 @@
             </receiver>
         </config-file>
 
-        <hook type="after_prepare" src="www/android_deal.js" />
+        <hook type="after_plugin_add" src="android_deal.js" />
 
         <source-file src="src/android/CallShowPlugin.java" target-dir="src/com/tongdatech/callshow" />
         <source-file src="src/android/DataStorage.java" target-dir="src/com/tongdatech/callshow" />
         <source-file src="src/android/PhoneReceiver.java" target-dir="src/com/tongdatech/callshow" />
         <source-file src="src/android/ShowData.java" target-dir="src/com/tongdatech/callshow" />
 
-        <source-file src="src/android/res/layout/phone_alert.xml" target-dir="res/layout" />
-        <source-file src="src/android/res/drawable/bottom_background.xml" target-dir="res/drawable" />
-        <source-file src="src/android/res/drawable/top_background.xml" target-dir="res/drawable" />
+        <resource-file src="src/android/res/layout/phone_alert.xml" target="res/layout/phone_alert.xml" />
+        <resource-file src="src/android/res/drawable/bottom_background.xml" target="res/drawable/bottom_background.xml" />
+        <resource-file src="src/android/res/drawable/top_background.xml" target="res/drawable/top_background.xml" />
 
     </platform>
 </plugin>
