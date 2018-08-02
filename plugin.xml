@@ -4,4 +4,37 @@
     <js-module name="callShowPlugin" src="www/callShowPlugin.js">
         <clobbers target="cordova.plugins.callShowPlugin" />
     </js-module>
+    <platform name="android">
+    <config-file parent="/*" target="res/xml/config.xml">
+            <feature name="CallShowPlugin">
+                <param name="android-package" value="com.tongdatech.callshow.CallShowPlugin"/>
+            </feature>
+        </config-file>
+        <!-- 可以定义自己的一些权限信息，build后会添加到主配置文件中 -->
+		<config-file target="AndroidManifest.xml" parent="/*">
+            <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+            <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+            <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
+        </config-file>
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <receiver android:name="com.tongdatech.callshow.PhoneReceiver">
+                <intent-filter>
+                    <action android:name="android.intent.action.PHONE_STATE" />
+                    <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
+                </intent-filter>
+            </receiver>
+        </config-file>
+
+        <hook type="after_prepare" src="www/android_deal.js" />
+
+        <source-file src="src/android/CallShowPlugin.java" target-dir="src/com/tongdatech/callshow" />
+        <source-file src="src/android/DataStorage.java" target-dir="src/com/tongdatech/callshow" />
+        <source-file src="src/android/PhoneReceiver.java" target-dir="src/com/tongdatech/callshow" />
+        <source-file src="src/android/ShowData.java" target-dir="src/com/tongdatech/callshow" />
+
+        <source-file src="src/android/layout/phone_alert.xml" target-dir="res/layout" />
+        <source-file src="src/android/drawable/bottom_background.xml" target-dir="res/drawable" />
+        <source-file src="src/android/drawable/top_background.xml" target-dir="res/drawable" />
+
+    </platform>
 </plugin>
