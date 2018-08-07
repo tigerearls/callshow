@@ -60,7 +60,7 @@ public class PhoneReceiver extends BroadcastReceiver {
         startTime = System.currentTimeMillis();
         outgoing = false;
         Log.e("TAG", "拨入电话,铃声响起");
-        show(context, incomeNumber, outgoing);
+        // show(context, incomeNumber, outgoing);
       } else if (TelephonyManager.EXTRA_STATE_OFFHOOK.equals(phoneState)) {
         String msg = outgoing ? "去电通话中" : "来电通话中";
         Log.e("TAG", msg + outgoing);
@@ -182,10 +182,10 @@ public class PhoneReceiver extends BroadcastReceiver {
       Log.e("TAG", "date:" + date + " durationTime:" + durationTime + " type:" + type);
       final Intent intent = new Intent("callEnd");
       Bundle b = new Bundle();
-      b.putString( "number", number );
-      b.putLong( "date", date );
-      b.putLong( "durationTime", durationTime );
-      b.putInt( "type", type );
+      b.putString( "evtNumber", number );
+      b.putLong( "evtDate", date );
+      b.putLong( "evtDurationTime", durationTime );
+      b.putInt( "evtType", type );
       intent.putExtras(b);
       localBroadcastManager.sendBroadcast(intent);
 

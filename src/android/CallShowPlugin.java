@@ -31,7 +31,24 @@ public class CallShowPlugin extends CordovaPlugin {
         data.setLine2(obj.getString("line2"));
         dataStorage.setShowData(data);
         callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, "OK"));
-      } catch (JSONException e) {
+      } catch (Exception e) {
+        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.JSON_EXCEPTION, e.getMessage()));
+      }
+
+    }
+    if (action.equals("get")) {
+
+      DataStorage dataStorage = DataStorage.getInstance();
+      try {
+        ShowData data = dataStorage.getShowData();
+        JSONObject json=new JSONObject();
+        json.put("phoneNumber",data.getPhoneNumber());
+        json.put("name",data.getName());
+        json.put("number",data.getNumber());
+        json.put("line1",data.getLine1());
+        json.put("line2",data.getLine2());
+        callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, json));
+      } catch (Exception e) {
         callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.JSON_EXCEPTION, e.getMessage()));
       }
 
