@@ -9,8 +9,10 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.PixelFormat;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.CallLog;
+import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.TelephonyManager;
@@ -26,7 +28,6 @@ import android.widget.TextView;
 import com.tongdatech.phonedemo.R;
 
 
-
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -37,6 +38,7 @@ public class PhoneReceiver extends BroadcastReceiver {
   private static boolean outgoing = false;
   private static View phoneView;
   private static long startTime;
+  private static long endTime;
 
   private static Executor executor = Executors.newCachedThreadPool();
 
@@ -67,6 +69,7 @@ public class PhoneReceiver extends BroadcastReceiver {
 //        if(outgoing)show(context,incomeNumber,outgoing);
 
       } else if (TelephonyManager.EXTRA_STATE_IDLE.equals(phoneState)) {
+        endTime = System.currentTimeMillis();
         String msg = outgoing ? "去电挂断电话" : "来电挂断电话";
         Log.e("TAG", msg + outgoing);
         hidden(context);
@@ -94,10 +97,33 @@ public class PhoneReceiver extends BroadcastReceiver {
   }
 
   private void show(Context context, String incomeNumber, boolean outgoingFlag) {
+
+    boolean flag;
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      flag = Settings.canDrawOverlays(context);
+      Log.e("TAG", "权限canDrawOverlays:" + flag);
+    } else {
+      int ret = ContextCompat.checkSelfPermission(context, Manifest.permission.SYSTEM_ALERT_WINDOW);
+      Log.e("TAG", "权限系统弹窗:" + ret);
+      flag = ret
+        == PackageManager.PERMISSION_GRANTED;
+
+    }
+    if (!flag) {
+      Log.e("TAG", "需要权限2:系统弹窗");
+      return;
+    }
+
+
     LayoutInflater inflate = LayoutInflater.from(context);
     WindowManager wm = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
     WindowManager.LayoutParams params = new WindowManager.LayoutParams();
-    params.type = WindowManager.LayoutParams.TYPE_PHONE;
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+    } else {
+      params.type = WindowManager.LayoutParams.TYPE_PHONE;
+    }
+
     params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
     params.gravity = Gravity.TOP;
 
@@ -154,7 +180,7 @@ public class PhoneReceiver extends BroadcastReceiver {
       Log.e("TAG", "需要权限2:读取通话记录");
       final Intent intent = new Intent("callEndErr");
       Bundle b = new Bundle();
-      b.putString( "msg", "读取通话记录" );
+      b.putString("msg", "读取通话记录");
       intent.putExtras(b);
       localBroadcastManager.sendBroadcast(intent);
       return false;
@@ -163,7 +189,7 @@ public class PhoneReceiver extends BroadcastReceiver {
 
     final Cursor cursor = cr.query(
       CallLog.Calls.CONTENT_URI,
-      new String[]{CallLog.Calls.NUMBER, CallLog.Calls.TYPE, CallLog.Calls.DATE, CallLog.Calls.DURATION},
+      new String[]{CallLog.Calls.NUMBER, CallLog.Calls.TYPE, CallLog.Calls.DATE, CallLog.Calls.DURATION, CallLog.Calls.LAST_MODIFIED},
       CallLog.Calls.NUMBER + "=?",
       new String[]{number},
       CallLog.Calls.DATE + " desc");
@@ -171,21 +197,26 @@ public class PhoneReceiver extends BroadcastReceiver {
     //取第一条数据
     if (cursor.moveToNext()) {
       long date = cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DATE));
-      if (Math.abs(date - startTime) > 5 * 1000) {
+      if (Math.abs(date - startTime) > 3 * 1000) {
         Log.e("TAG", "date:" + date + " startTime:" + startTime);
         return false;
       }
 
       long durationTime = cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DURATION));
+      //4.2以后可用
+      long lastModified = cursor.getLong(cursor.getColumnIndex(CallLog.Calls.LAST_MODIFIED));
       //1接入 2打出 3未接
       int type = cursor.getInt(cursor.getColumnIndex(CallLog.Calls.TYPE));
       Log.e("TAG", "date:" + date + " durationTime:" + durationTime + " type:" + type);
       final Intent intent = new Intent("callEnd");
       Bundle b = new Bundle();
-      b.putString( "evtNumber", number );
-      b.putLong( "evtDate", date );
-      b.putLong( "evtDurationTime", durationTime );
-      b.putInt( "evtType", type );
+      b.putString("evtNumber", number);
+      b.putLong("evtDate", date);
+      b.putLong("evtDurationTime", durationTime);
+      b.putInt("evtType", type);
+      b.putLong("evtEndDate", endTime);
+      b.putLong("evtLastModified", lastModified);
+
       intent.putExtras(b);
       localBroadcastManager.sendBroadcast(intent);
 
