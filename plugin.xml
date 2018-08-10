@@ -36,6 +36,6 @@
         <resource-file src="src/android/res/layout/phone_alert.xml" target="res/layout/phone_alert.xml" />
         <resource-file src="src/android/res/drawable/bottom_background.xml" target="res/drawable/bottom_background.xml" />
         <resource-file src="src/android/res/drawable/top_background.xml" target="res/drawable/top_background.xml" />
-
+        <framework src="com.android.support:support-v4:26+"/>
     </platform>
 </plugin>
