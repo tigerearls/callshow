@@ -16,12 +16,14 @@ import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.TelephonyManager;
+import android.text.Editable;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.EditText;
 import android.widget.TextView;
 
 
@@ -72,14 +74,14 @@ public class PhoneReceiver extends BroadcastReceiver {
         endTime = System.currentTimeMillis();
         String msg = outgoing ? "去电挂断电话" : "来电挂断电话";
         Log.e("TAG", msg + outgoing);
-        hidden(context);
+        final String text=hidden(context);
 
         executor.execute(() -> {
           try {
 
             for (int i = 0; i < 10; i++) {
               Thread.sleep(100);
-              if (readCallLog(context, incomeNumber)) break;
+              if (readCallLog(context, incomeNumber,text)) break;
             }
           } catch (InterruptedException e) {
             e.printStackTrace();
@@ -124,7 +126,8 @@ public class PhoneReceiver extends BroadcastReceiver {
       params.type = WindowManager.LayoutParams.TYPE_PHONE;
     }
 
-    params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
+    params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL;
+    //| WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
     params.gravity = Gravity.TOP;
 
 
@@ -162,15 +165,22 @@ public class PhoneReceiver extends BroadcastReceiver {
 
   }
 
-  private void hidden(Context context) {
+  private String hidden(Context context) {
+    String text="";
     WindowManager wm = (WindowManager) context.getApplicationContext().getSystemService(Context.WINDOW_SERVICE);
-    if (phoneView != null) wm.removeView(phoneView);
+    if (phoneView != null) {
+      wm.removeView(phoneView);
+      EditText editText=phoneView.findViewById(R.id.tv_pa_et1);
+      text = editText.getText().toString();
+      Log.d("TAG", "text:"+text);
+    }
     //释放
     phoneView = null;
+    return text;
   }
 
 
-  private boolean readCallLog(Context context, String number) {
+  private boolean readCallLog(Context context, String number, String text) {
     boolean result = false;
     ContentResolver cr = context.getContentResolver();
     LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(context);
@@ -223,6 +233,7 @@ public class PhoneReceiver extends BroadcastReceiver {
       b.putLong("evtEndDate", endTime);
       b.putLong("evtLastModified", lastModified);
       b.putLong("evtActiveDate", activeTime);
+      b.putString("evtText",text);
       intent.putExtras(b);
       localBroadcastManager.sendBroadcast(intent);
 
