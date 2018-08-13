@@ -197,14 +197,20 @@ public class PhoneReceiver extends BroadcastReceiver {
     //取第一条数据
     if (cursor.moveToNext()) {
       long date = cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DATE));
-      if (Math.abs(date - startTime) > 3 * 1000) {
-        Log.e("TAG", "date:" + date + " startTime:" + startTime);
-        return false;
-      }
 
       long durationTime = cursor.getLong(cursor.getColumnIndex(CallLog.Calls.DURATION));
       //4.2以后可用
       long lastModified = cursor.getLong(cursor.getColumnIndex(CallLog.Calls.LAST_MODIFIED));
+
+      long activeTime=lastModified-durationTime*1000;
+      //date有些手机为拨出时间 有些为接通时间 与两个时间做比较 差别都较大的为不可信
+      //小米手机是拨出时间 华为是接通时间
+      if (Math.abs(date - startTime) > 3 * 1000
+        && Math.abs(activeTime - date)> 3 * 1000) {
+        Log.e("TAG", "date:" + date + " startTime:" + startTime+" activeTime:"+activeTime);
+        return false;
+      }
+
       //1接入 2打出 3未接
       int type = cursor.getInt(cursor.getColumnIndex(CallLog.Calls.TYPE));
       Log.e("TAG", "date:" + date + " durationTime:" + durationTime + " type:" + type);
@@ -216,7 +222,7 @@ public class PhoneReceiver extends BroadcastReceiver {
       b.putInt("evtType", type);
       b.putLong("evtEndDate", endTime);
       b.putLong("evtLastModified", lastModified);
-
+      b.putLong("evtActiveDate", activeTime);
       intent.putExtras(b);
       localBroadcastManager.sendBroadcast(intent);
 
